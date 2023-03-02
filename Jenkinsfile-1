@@ -22,19 +22,22 @@ pipeline {
         }
         stage('SonarQube Analysis'){
             steps{
-                   withSonarQubeEnv('sonarqube') {
+                   withSonarQubeEnv('Sonarqube-8.9.2') {
                         sh 'mvn clean verify sonar:sonar \
-                        -Dsonar.projectKey=devops-project-key \
-                        -Dsonar.host.url=$sonarurl \
-                        -Dsonar.login=$sonarlogin'
+                        -Dsonar.projectKey=maven-project \
+                        -Dsonar.host.url=http://54.243.26.167:9000  \
+                        -Dsonar.login=cb3602effdff2e77ebcf21feadf47b9a91269a32'
                     }
             }
         }
-        stage('Deploy'){
-            steps{
-                sh 'timeout 60s java -jar /var/lib/jenkins/workspace/devopscicd/target/demo-0.0.1-SNAPSHOT.jar'
+        stage("Quality Gate") {
+            steps {
+                timeout(time: 1, unit: 'HOURS') {
+                    // Parameter indicates whether to set pipeline to UNSTABLE if Quality Gate fails
+                    // true = set pipeline to UNSTABLE, false = don't
+                    waitForQualityGate abortPipeline: true
+                }
             }
         }
         }
     }
-        
